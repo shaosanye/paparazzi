@@ -3,7 +3,7 @@ dist: trusty
 language: c
 compiler:
   - gcc
-  - clang
+#  - clang
 before_install:
   - sudo add-apt-repository ppa:paparazzi-uav/ppa -y
   - sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa -y
@@ -12,7 +12,7 @@ install:
   - sudo apt-get install -y paparazzi-dev paparazzi-jsbsim gcc-arm-embedded libipc-run-perl cmake
 script:
   - arm-none-eabi-gcc --version
-  - make test
+#  - make test
 
 env:
   global:
