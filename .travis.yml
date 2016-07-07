@@ -12,6 +12,7 @@ install:
   - sudo apt-get install -y paparazzi-dev paparazzi-jsbsim gcc-arm-embedded libipc-run-perl cmake
 script:
   - arm-none-eabi-gcc --version
+<<<<<<< HEAD
   - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make test; fi
 
 env:
@@ -29,6 +30,9 @@ addons:
     build_command_prepend: make ext; cov-configure --comptype gcc --compiler arm-none-eabi-gcc --template
     build_command: make test
     branch_pattern: coverity_scan
+=======
+#  - make test
+>>>>>>> [test] coverity: only build with gcc and disable normal make test
 
 env:
   global:
