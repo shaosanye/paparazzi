@@ -43,7 +43,7 @@ addons:
       description: "Build submitted via Travis CI"
     notification_email: paparazzi-builds@nongnu.org
     build_command_prepend: "make ext"
-    build_command: "make"
+    build_command: "make test"
     branch_pattern: coverity_scan
 
 notifications:
