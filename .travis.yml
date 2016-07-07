@@ -13,6 +13,7 @@ install:
 script:
   - arm-none-eabi-gcc --version
 <<<<<<< HEAD
+<<<<<<< HEAD
   - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make test; fi
 
 env:
@@ -33,6 +34,9 @@ addons:
 =======
 #  - make test
 >>>>>>> [test] coverity: only build with gcc and disable normal make test
+=======
+  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make test; fi
+>>>>>>> [test] coverity: only run make test if not running coverity tests
 
 env:
   global:
