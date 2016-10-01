@@ -44,8 +44,8 @@ void nav_goto_block(uint8_t block_id);
 #define InitStage() nav_init_stage();
 
 #define Block(x) case x: nav_block=x;
-#define NextBlock() { nav_block++; nav_init_block(); }
-#define GotoBlock(b) { nav_block=b; nav_init_block(); }
+#define NextBlock() nav_goto_block(nav_block + 1)
+#define GotoBlock(b) nav_goto_block(b)
 
 #define Stage(s) case s: nav_stage=s;
 #define NextStage() { nav_stage++; InitStage(); }
@@ -55,6 +55,7 @@ void nav_goto_block(uint8_t block_id);
 #define Label(x) label_ ## x:
 #define Goto(x) { goto label_ ## x; }
 #define Return() { nav_block=last_block; nav_stage=last_stage; block_time=0;}
+#define ReturnToStartPrevBlock() { nav_block=last_block; nav_stage=0; block_time=0;}
 
 #define And(x, y) ((x) && (y))
 #define Or(x, y) ((x) || (y))
