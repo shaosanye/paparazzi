@@ -85,6 +85,9 @@ int32_t nav_heading;
 int32_t nav_cmd_roll, nav_cmd_pitch, nav_cmd_yaw;
 float nav_radius;
 float nav_climb_vspeed, nav_descend_vspeed;
+float line_following_dist = NAVIGATION_LINE_FOLLOWING_DIST;
+
+uint32_t last_wp_reached_in_route = 1;
 
 /** default nav_circle_radius in meters */
 #ifndef DEFAULT_CIRCLE_RADIUS
@@ -290,7 +293,7 @@ void nav_route(struct EnuCoor_i *wp_start, struct EnuCoor_i *wp_end)
   uint32_t leg_length2 = Max((wp_diff.x * wp_diff.x + wp_diff.y * wp_diff.y), 1);
   nav_leg_length = int32_sqrt(leg_length2);
   nav_leg_progress = (pos_diff.x * wp_diff.x + pos_diff.y * wp_diff.y) / nav_leg_length;
-  int32_t progress = Max((CARROT_DIST >> INT32_POS_FRAC), 0);
+  int32_t progress = Max(line_following_dist, 0);
   nav_leg_progress += progress;
   int32_t prog_2 = nav_leg_length;
   Bound(nav_leg_progress, 0, prog_2);
@@ -486,20 +489,16 @@ void nav_home(void)
 
 /** Set manual roll, pitch and yaw without stabilization
  *
- * @param[in] roll command in pprz scale (int32_t)
- * @param[in] pitch command in pprz scale (int32_t)
- * @param[in] yaw command in pprz scale (int32_t)
- *
- * This function allows to directly set commands from the flight plan,
- * if in nav_manual mode.
- * This is for instance useful for helicopters during the spinup
+ * @param[in] roll The angle in radians (float)
+ * @param[in] pitch The angle in radians (float)
+ * @param[in] yaw The angle in radians (float)
  */
-void nav_set_manual(int32_t roll, int32_t pitch, int32_t yaw)
+void nav_set_manual(float roll, float pitch, float yaw)
 {
   horizontal_mode = HORIZONTAL_MODE_MANUAL;
-  nav_cmd_roll = roll;
-  nav_cmd_pitch = pitch;
-  nav_cmd_yaw = yaw;
+  nav_cmd_roll = ANGLE_BFP_OF_REAL(roll);
+  nav_cmd_pitch = ANGLE_BFP_OF_REAL(pitch);
+  nav_cmd_yaw = ANGLE_BFP_OF_REAL(yaw);
 }
 
 /** Returns squared horizontal distance to given point */
@@ -567,10 +566,21 @@ bool nav_set_heading_towards_waypoint(uint8_t wp)
   return nav_set_heading_towards(WaypointX(wp), WaypointY(wp));
 }
 
+/** Set heading in the direction of the target*/
+bool nav_set_heading_towards_target(void)
+{
+  return nav_set_heading_towards(POS_FLOAT_OF_BFP(navigation_target.x),POS_FLOAT_OF_BFP(navigation_target.y));
+}
+
 /** Set heading to the current yaw angle */
 bool nav_set_heading_current(void)
 {
   nav_heading = stateGetNedToBodyEulers_i()->psi;
+  return false;
+}
+
+bool nav_set_failsafe(void) {
+  autopilot_set_mode(AP_MODE_FAILSAFE);
   return false;
 }
 

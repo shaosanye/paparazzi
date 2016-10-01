@@ -175,7 +175,6 @@ static void send_gps_sol(struct transport_tx *trans, struct link_device *dev)
 }
 #endif
 
-
 #ifdef SECONDARY_GPS
 static uint8_t gps_multi_switch(struct GpsState *gps_s) {
   static uint32_t time_since_last_gps_switch = 0;
@@ -191,20 +190,25 @@ static uint8_t gps_multi_switch(struct GpsState *gps_s) {
       return gps.comp_id;
     } else{
       if (get_sys_time_msec() - time_since_last_gps_switch > TIME_TO_SWITCH) {
-        if (gps_s->num_sv > gps.num_sv) {
-          current_gps_id = gps_s->comp_id;
-          time_since_last_gps_switch = get_sys_time_msec();
-        } else if (gps.num_sv > gps_s->num_sv) {
-          current_gps_id = gps.comp_id;
-          time_since_last_gps_switch = get_sys_time_msec();
+        if(outback_hybrid_mode == HB_FORWARD) {
+          return GpsId(SECONDARY_GPS);
         }
+        else {
+          return GpsId(PRIMARY_GPS);
+        }
+        //if (gps_s->sacc < gps.sacc) {
+        //  current_gps_id = gps_s->comp_id;
+        //  time_since_last_gps_switch = get_sys_time_msec();
+        //} else if (gps.sacc < gps_s->sacc) {
+        //  current_gps_id = gps.comp_id;
+        //  time_since_last_gps_switch = get_sys_time_msec();
+        //}
       }
     }
   }
   return current_gps_id;
 }
 #endif /*SECONDARY_GPS*/
-
 
 void gps_periodic_check(struct GpsState *gps_s)
 {
@@ -221,7 +225,6 @@ void gps_periodic_check(struct GpsState *gps_s)
   gps = *gps_s;
 #endif
 }
-
 
 static abi_event gps_ev;
 static void gps_cb(uint8_t sender_id,

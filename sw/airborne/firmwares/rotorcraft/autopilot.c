@@ -43,6 +43,7 @@
 #include "firmwares/rotorcraft/stabilization.h"
 #include "firmwares/rotorcraft/stabilization/stabilization_none.h"
 #include "firmwares/rotorcraft/stabilization/stabilization_attitude.h"
+#include "firmwares/rotorcraft/stabilization/stabilization_attitude_rc_setpoint.h"
 
 #if USE_STABILIZATION_RATE
 #include "firmwares/rotorcraft/stabilization/stabilization_rate.h"
@@ -223,6 +224,7 @@ static void send_energy(struct transport_tx *trans, struct link_device *dev)
 static void send_fp(struct transport_tx *trans, struct link_device *dev)
 {
   int32_t carrot_up = -guidance_v_z_sp;
+  int32_t hybrid_heading = stabilization_attitude_get_heading_i();
   pprz_msg_send_ROTORCRAFT_FP(trans, dev, AC_ID,
                               &(stateGetPositionEnu_i()->x),
                               &(stateGetPositionEnu_i()->y),
@@ -232,13 +234,22 @@ static void send_fp(struct transport_tx *trans, struct link_device *dev)
                               &(stateGetSpeedEnu_i()->z),
                               &(stateGetNedToBodyEulers_i()->phi),
                               &(stateGetNedToBodyEulers_i()->theta),
-                              &(stateGetNedToBodyEulers_i()->psi),
+                              &hybrid_heading,
                               &guidance_h.sp.pos.y,
                               &guidance_h.sp.pos.x,
                               &carrot_up,
                               &guidance_h.sp.heading,
                               &stabilization_cmd[COMMAND_THRUST],
                               &autopilot_flight_time);
+}
+
+static void send_fp_min(struct transport_tx *trans, struct link_device *dev)
+{;
+  pprz_msg_send_ROTORCRAFT_FP_MIN(trans, dev, AC_ID,
+                              &(stateGetPositionEnu_i()->x),
+                              &(stateGetPositionEnu_i()->y),
+                              &(stateGetPositionEnu_i()->z),
+                              &gps.gspeed);
 }
 
 #ifdef RADIO_CONTROL
@@ -328,6 +339,7 @@ void autopilot_init(void)
   register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_ATTITUDE, send_attitude);
   register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_ENERGY, send_energy);
   register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_ROTORCRAFT_FP, send_fp);
+  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_ROTORCRAFT_FP_MIN, send_fp_min);
   register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_ROTORCRAFT_CMD, send_rotorcraft_cmd);
   register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_DL_VALUE, send_dl_value);
 #ifdef ACTUATORS

@@ -26,6 +26,7 @@
 #include "generated/airframe.h"
 
 #include "firmwares/rotorcraft/stabilization/stabilization_attitude.h"
+#include "firmwares/rotorcraft/stabilization/stabilization_rate.h"
 #include "firmwares/rotorcraft/stabilization/stabilization_attitude_rc_setpoint.h"
 #include "firmwares/rotorcraft/stabilization/stabilization_attitude_quat_transformations.h"
 
@@ -34,6 +35,7 @@
 #include "math/pprz_algebra_float.h"
 #include "math/pprz_algebra_int.h"
 #include "state.h"
+#include "subsystems/radio_control.h"
 
 struct Int32AttitudeGains stabilization_gains = {
   {STABILIZATION_ATTITUDE_PHI_PGAIN, STABILIZATION_ATTITUDE_THETA_PGAIN, STABILIZATION_ATTITUDE_PSI_PGAIN },
@@ -59,6 +61,8 @@ struct Int32Quat stabilization_att_sum_err_quat;
 
 int32_t stabilization_att_fb_cmd[COMMANDS_NB];
 int32_t stabilization_att_ff_cmd[COMMANDS_NB];
+
+int32_t disp_pitch_error = 0;
 
 struct Int32Quat   stab_att_sp_quat;
 struct Int32Eulers stab_att_sp_euler;
@@ -91,7 +95,7 @@ static void send_att(struct transport_tx *trans, struct link_device *dev)   //FI
                                   &stabilization_att_fb_cmd[COMMAND_PITCH],
                                   &stabilization_att_fb_cmd[COMMAND_YAW],
                                   &stabilization_att_ff_cmd[COMMAND_ROLL],
-                                  &stabilization_att_ff_cmd[COMMAND_PITCH],
+                                  &disp_pitch_error,
                                   &stabilization_att_ff_cmd[COMMAND_YAW],
                                   &stabilization_cmd[COMMAND_ROLL],
                                   &stabilization_cmd[COMMAND_PITCH],
@@ -250,6 +254,8 @@ void stabilization_attitude_run(bool enable_integrator)
   int32_quat_wrap_shortest(&att_err);
   int32_quat_normalize(&att_err);
 
+  disp_pitch_error = att_err.qy;
+
   /*  rate error                */
   const struct Int32Rates rate_ref_scaled = {
     OFFSET_AND_ROUND(att_ref_quat_i.rate.p, (REF_RATE_FRAC - INT32_RATE_FRAC)),
@@ -258,6 +264,7 @@ void stabilization_attitude_run(bool enable_integrator)
   };
   struct Int32Rates rate_err;
   struct Int32Rates *body_rate = stateGetBodyRates_i();
+  struct FloatRates *body_rate_f = stateGetBodyRates_f();
   RATES_DIFF(rate_err, rate_ref_scaled, (*body_rate));
 
 #define INTEGRATOR_BOUND 100000
@@ -284,6 +291,11 @@ void stabilization_attitude_run(bool enable_integrator)
   stabilization_cmd[COMMAND_ROLL] = stabilization_att_fb_cmd[COMMAND_ROLL] + stabilization_att_ff_cmd[COMMAND_ROLL];
   stabilization_cmd[COMMAND_PITCH] = stabilization_att_fb_cmd[COMMAND_PITCH] + stabilization_att_ff_cmd[COMMAND_PITCH];
   stabilization_cmd[COMMAND_YAW] = stabilization_att_fb_cmd[COMMAND_YAW] + stabilization_att_ff_cmd[COMMAND_YAW];
+
+  // Add euler dynamics compensation
+    // Add euler dynamics compensation
+  stabilization_cmd[COMMAND_ROLL] =  stabilization_cmd[COMMAND_ROLL]  + 299*q_on_p_coupling*body_rate_f->q;
+  stabilization_cmd[COMMAND_PITCH] = stabilization_cmd[COMMAND_PITCH] + 337.0*-p_on_q_coupling*body_rate_f->p;
 
   /* bound the result */
   BoundAbs(stabilization_cmd[COMMAND_ROLL], MAX_PPRZ);

@@ -184,7 +184,9 @@ STATIC_INLINE void main_init(void)
 #if USE_BARO_BOARD
   baro_init();
 #endif
-
+#if USE_IMU
+  imu_init();
+#endif
 #if USE_AHRS_ALIGNER
   ahrs_aligner_init();
 #endif
@@ -259,8 +261,20 @@ STATIC_INLINE void handle_periodic_tasks(void)
 STATIC_INLINE void main_periodic(void)
 {
 
+#if USE_IMU
+  imu_periodic();
+#endif
+
+#if INTER_MCU_AP
+  /* Inter-MCU watchdog */
+  intermcu_periodic();
+#endif
+
   /* run control loops */
   autopilot_periodic();
+
+  //FIXME check
+  throttle_curve_run(commands, autopilot_mode);
   /* set actuators     */
   //actuators_set(autopilot_motors_on);
 #ifndef INTER_MCU_AP
@@ -310,10 +324,7 @@ STATIC_INLINE void failsafe_check(void)
       autopilot_mode != AP_MODE_KILL &&
       autopilot_mode != AP_MODE_HOME &&
       autopilot_mode != AP_MODE_FAILSAFE &&
-      autopilot_mode != AP_MODE_NAV &&
-      autopilot_mode != AP_MODE_MODULE &&
-      autopilot_mode != AP_MODE_FLIP &&
-      autopilot_mode != AP_MODE_GUIDED) {
+      autopilot_mode != AP_MODE_NAV) {
     autopilot_set_mode(RC_LOST_MODE);
   }
 
@@ -325,15 +336,6 @@ STATIC_INLINE void failsafe_check(void)
 #endif
 
 #if USE_GPS
-  if (autopilot_mode == AP_MODE_NAV &&
-      autopilot_motors_on &&
-#if NO_GPS_LOST_WITH_RC_VALID
-      radio_control.status != RC_OK &&
-#endif
-      GpsIsLost()) {
-    autopilot_set_mode(AP_MODE_FAILSAFE);
-  }
-
   if (autopilot_mode == AP_MODE_HOME &&
       autopilot_motors_on && GpsIsLost()) {
     autopilot_set_mode(AP_MODE_FAILSAFE);
@@ -353,6 +355,10 @@ STATIC_INLINE void main_event(void)
   if (autopilot_rc) {
     RadioControlEvent(autopilot_on_rc_frame);
   }
+
+#if USE_IMU
+  ImuEvent();
+#endif
 
 #if USE_BARO_BOARD
   BaroEvent();

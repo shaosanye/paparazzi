@@ -55,56 +55,67 @@
       <arg flag="4242" />
       <arg flag="4252" />
     </program>
+    <program name="Iridium Link" command="sw/tools/iridium/iridium_link.py"/>
+    <program name="IVY2UDP" command="sw/ground_segment/tmtc/ivy2udp"/>
+    <program name="SVInfo" command="sw/ground_segment/python/svinfo/svinfo.py"/>
+    <program name="ATC" command="sw/ground_segment/python/atc/atc.py"/>
+    <program name="PayloadForward" command="sw/ground_segment/python/payload_decoder/payload.py"/>
+    <program name="SmartUAV" command="../SmartUAV/go.sh"/>
   </section>
 
   <section name="sessions">
-    <session name="helidd">
-      <program name="BluegigaUsbDongle">
-        <arg flag="/dev/ttyACM0" constant="00:07:80:2d:d6:d9"/>
-        <arg flag="4242" constant="4252"/>
-      </program>
+    <session name="OUTBACK">
       <program name="Data Link">
-        <arg flag="-udp"/>
-        <arg flag="-udp_port" constant="4242"/>
-        <arg flag="-udp_uplink_port" constant="4252"/>
+        <arg flag="-d" constant="/dev/paparazzi/longrange"/>
+        <arg flag="-s" constant="9600"/>
       </program>
       <program name="Server"/>
-      <program name="Messages"/>
       <program name="GCS">
         <arg flag="-speech"/>
+        <arg flag="-maps_zoom" constant="18"/>
+        <arg flag="-layout" constant="bottom_settings.xml"/>
       </program>
-      <program name="Joystick">
-        <arg flag="-d" constant="2"/>
-        <arg flag="-ac" constant="GeniusDD"/>
-        <arg flag="hobbyking.xml"/>
-      </program>
-    </session>
-    <session name="Bluegiga">
-      <program name="BluegigaUsbDongle">
-        <arg flag="/dev/ttyACM2" constant="all"/>
-        <arg flag="4242" constant="4252"/>
-      </program>
+      <program name="Messages"/>
+      <program name="Iridium Link"/>
       <program name="Data Link">
         <arg flag="-udp"/>
-        <arg flag="-udp_port" constant="4242"/>
-        <arg flag="-udp_uplink_port" constant="4252"/>
+      </program>
+      <program name="Ivy2Nmea">
+        <arg flag="--port" constant="/dev/paparazzi/nmea"/>
+        <arg flag="--id" constant="@AC_ID"/>
+      </program>
+      <program name="IVY2UDP">
+        <arg flag="-h" constant="10.0.0.1"/>
+        <arg flag="-p" constant="5252"/>
+        <arg flag="-dp" constant="5253"/>
+        <arg flag="-id" constant="@AC_ID"/>
+      </program>
+    </session>
+    <session name="Flight Iridium">
+      <program name="Iridium Link"/>
+      <program name="Data Link">
+        <arg flag="-udp"/>
       </program>
       <program name="Server"/>
-      <program name="Messages"/>
       <program name="GCS">
         <arg flag="-speech" />
+        <arg flag="-maps_zoom" constant="18"/>
+        <arg flag="-layout"  constant="bottom_settings.xml" />
       </program>
-      <program name="NatNet">
-        <arg flag="-ac" constant="1"/>
-        <arg flag="12"/>
-        <arg flag="-small"/>
-        <arg flag="-tf" constant="5"/>
+    </session>
+    <session name="Flight USB0 @9600">
+      <program name="Data Link">
+        <arg flag="-d" constant="/dev/ttyUSB0"/>
+        <arg flag="-s" constant="9600"/>
       </program>
-      <program name="Joystick">
-        <arg flag="-d" constant="2"/>
-        <arg flag="-ac" constant="@AIRCRAFT"/>
-        <arg flag="hobbyking.xml"/>
+      <program name="Server"/>
+      <program name="SVInfo"/>
+      <program name="GCS">
+        <arg flag="-speech" />
+        <arg flag="-maps_zoom" constant="18"/>
+        <arg flag="-layout"  constant="bottom_settings.xml" />
       </program>
+      <program name="Messages"/>
     </session>
     <session name="Flight USB0 @57600">
       <program name="Data Link">
@@ -112,9 +123,13 @@
         <arg flag="-s" constant="57600"/>
       </program>
       <program name="Server"/>
+      <program name="SVInfo"/>
       <program name="GCS">
         <arg flag="-speech" />
+        <arg flag="-maps_zoom" constant="18"/>
+        <arg flag="-layout"  constant="bottom_settings.xml" />
       </program>
+      <program name="Messages"/>
     </session>
     <session name="Flight Paparazzi @57600">
       <program name="Data Link">
@@ -122,9 +137,13 @@
         <arg flag="-s" constant="57600"/>
       </program>
       <program name="Server"/>
+      <program name="SVInfo"/>
       <program name="GCS">
         <arg flag="-speech" />
+        <arg flag="-maps_zoom" constant="18"/>
+        <arg flag="-layout"  constant="bottom_settings.xml" />
       </program>
+      <program name="Messages"/>
     </session>
     <session name="Flight ACM1 @57600">
       <program name="Data Link">
@@ -134,6 +153,8 @@
       <program name="Server"/>
       <program name="GCS">
         <arg flag="-speech" />
+        <arg flag="-maps_zoom" constant="18"/>
+        <arg flag="-layout"  constant="bottom_settings.xml" />
       </program>
     </session>
     <session name="Flight ACM0 @57600">
@@ -144,6 +165,8 @@
       <program name="Server"/>
       <program name="GCS">
         <arg flag="-speech" />
+        <arg flag="-maps_zoom" constant="18"/>
+        <arg flag="-layout"  constant="bottom_settings.xml" />
       </program>
     </session>
     <session name="Flight XBee @57600">
@@ -153,10 +176,13 @@
         <arg flag="-s" constant="57600"/>
       </program>
       <program name="Server"/>
+      <program name="SVInfo"/>
       <program name="GCS">
         <arg flag="-speech" />
+        <arg flag="-maps_zoom" constant="18"/>
         <arg flag="-layout"  constant="bottom_settings.xml" />
       </program>
+      <program name="Messages"/>
     </session>
     <session name="Flight XBee USB0 @57600">
       <program name="Data Link">
@@ -165,8 +191,10 @@
         <arg flag="-s" constant="57600"/>
       </program>
       <program name="Server"/>
+      <program name="SVInfo"/>
       <program name="GCS">
         <arg flag="-speech" />
+        <arg flag="-maps_zoom" constant="18"/>
         <arg flag="-layout"  constant="bottom_settings.xml" />
       </program>
       <program name="Messages"/>
@@ -176,8 +204,10 @@
         <arg flag="-udp"/>
       </program>
       <program name="Server"/>
+      <program name="SVInfo"/>
       <program name="GCS">
         <arg flag="-speech" />
+        <arg flag="-maps_zoom" constant="18"/>
         <arg flag="-layout"  constant="bottom_settings.xml" />
       </program>
       <program name="Messages"/>
