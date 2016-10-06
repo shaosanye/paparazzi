@@ -148,16 +148,14 @@ void throttle_curve_run(pprz_t cmds[], uint8_t ap_mode)
       throttle_curve.rpm = 0xFFFF;
   }
 
-  // Trim in curve 3 hack
-  if(throttle_curve.mode == 2) {
-    int32_t trimmed_throttle = throttle_curve.throttle + throttle_curve.throttle_trim;
-    Bound(trimmed_throttle, 0, MAX_PPRZ);
-    throttle_curve.throttle = trimmed_throttle;
+  // Trim
+  int32_t trimmed_throttle = throttle_curve.throttle + throttle_curve.throttle_trim;
+  Bound(trimmed_throttle, 0, MAX_PPRZ);
+  throttle_curve.throttle = trimmed_throttle;
 
-    int32_t trimmed_collective = throttle_curve.collective + throttle_curve.coll_trim;
-    Bound(trimmed_collective, -MAX_PPRZ, MAX_PPRZ);
-    throttle_curve.collective = trimmed_collective;
-  }
+  int32_t trimmed_collective = throttle_curve.collective + throttle_curve.coll_trim;
+  Bound(trimmed_collective, -MAX_PPRZ, MAX_PPRZ);
+  throttle_curve.collective = trimmed_collective;
 
   // Update RPM feedback
   if(curve.rpm[0] != 0xFFFF && throttle_curve.rpm_measured) {
@@ -190,13 +188,6 @@ void throttle_curve_run(pprz_t cmds[], uint8_t ap_mode)
   if (!autopilot_motors_on) {
     cmds[COMMAND_THRUST] = 0;
     throttle_curve.rpm_err_sum = 0;
-  }
-
-  // disable the tip propellers when in curve 2
-  if (throttle_curve.mode == 2) {
-    INTERMCU_SET_CMD_STATUS(INTERMCU_CMD_TIPPROPS);
-  } else {
-    INTERMCU_CLR_CMD_STATUS(INTERMCU_CMD_TIPPROPS);
   }
 }
 
