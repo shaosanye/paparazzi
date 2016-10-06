@@ -60,8 +60,9 @@ struct throttle_curve_t throttle_curve = {
 
 static void throttle_curve_send_telem(struct transport_tx *trans, struct link_device *dev)
 {
-  pprz_msg_send_THROTTLE_CURVE(trans, dev, AC_ID, &throttle_curve.mode, &throttle_curve.throttle, &throttle_curve.collective,
-    &throttle_curve.rpm, &throttle_curve.rpm_meas, &throttle_curve.rpm_err_sum);
+  pprz_msg_send_THROTTLE_CURVE(trans, dev, AC_ID, &throttle_curve.mode, &throttle_curve.throttle,
+                               &throttle_curve.collective,
+                               &throttle_curve.rpm, &throttle_curve.rpm_meas, &throttle_curve.rpm_err_sum);
 }
 #endif
 
@@ -104,7 +105,7 @@ static void rpm_cb(uint8_t __attribute__((unused)) sender_id, uint16_t rpm)
 void throttle_curve_run(pprz_t cmds[], uint8_t ap_mode)
 {
   // Calculate the mode value from the switch
-  if(ap_mode != AP_MODE_NAV) {
+  if (ap_mode != AP_MODE_NAV) {
     int8_t mode = ((float)(radio_control.values[RADIO_FMODE] + MAX_PPRZ) / THROTTLE_CURVE_SWITCH_VAL);
     Bound(mode, 0, THROTTLE_CURVES_NB - 1);
     throttle_curve.mode = mode;
@@ -113,7 +114,7 @@ void throttle_curve_run(pprz_t cmds[], uint8_t ap_mode)
   }
 
   // Failsafe curve
-  if(ap_mode == AP_MODE_FAILSAFE) {
+  if (ap_mode == AP_MODE_FAILSAFE) {
     throttle_curve.mode = 0;
   }
 
@@ -135,17 +136,18 @@ void throttle_curve_run(pprz_t cmds[], uint8_t ap_mode)
                               + ((curve.throttle[curve_p + 1] - curve.throttle[curve_p]) * x / curve_range);
     throttle_curve.collective = curve.collective[curve_p]
                                 + ((curve.collective[curve_p + 1] - curve.collective[curve_p]) * x / curve_range);
-    if(curve.rpm[0] != 0xFFFF) {
-      if(throttle_curve.rpm == 0xFFFF)
+    if (curve.rpm[0] != 0xFFFF) {
+      if (throttle_curve.rpm == 0xFFFF) {
         throttle_curve.rpm = throttle_curve.rpm_meas;
+      }
       uint16_t new_rpm = curve.rpm[curve_p]
-                            + ((curve.rpm[curve_p + 1] - curve.rpm[curve_p]) * x / curve_range);
+                         + ((curve.rpm[curve_p + 1] - curve.rpm[curve_p]) * x / curve_range);
       int32_t rpm_diff = new_rpm - throttle_curve.rpm;
       Bound(rpm_diff, -1, 1);
       throttle_curve.rpm += rpm_diff;
-    }
-    else
+    } else {
       throttle_curve.rpm = 0xFFFF;
+    }
   }
 
   // Trim
@@ -158,7 +160,7 @@ void throttle_curve_run(pprz_t cmds[], uint8_t ap_mode)
   throttle_curve.collective = trimmed_collective;
 
   // Update RPM feedback
-  if(curve.rpm[0] != 0xFFFF && throttle_curve.rpm_measured) {
+  if (curve.rpm[0] != 0xFFFF && throttle_curve.rpm_measured) {
     // Calculate RPM error
     int32_t rpm_err = (throttle_curve.rpm - throttle_curve.rpm_meas);
 
@@ -175,8 +177,7 @@ void throttle_curve_run(pprz_t cmds[], uint8_t ap_mode)
     Bound(new_throttle, 0, MAX_PPRZ);
     throttle_curve.throttle = new_throttle;
     throttle_curve.rpm_measured = false;
-  }
-  else if(curve.rpm[0] == 0xFFFF) {
+  } else if (curve.rpm[0] == 0xFFFF) {
     throttle_curve.rpm_err_sum = 0;
   }
 

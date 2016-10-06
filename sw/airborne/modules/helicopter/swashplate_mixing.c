@@ -83,9 +83,9 @@ void swashplate_mixing_run(pprz_t in_cmd[])
   // Go trough all the motors and calculate the command
   for (i = 0; i < SW_NB; i++) {
     swashplate_mixing.commands[i] = swashplate_mixing.trim[i] +
-        roll_coef[i] * in_cmd[COMMAND_ROLL] +
-        pitch_coef[i] * in_cmd[COMMAND_PITCH] +
-        coll_coef[i] * throttle_curve.collective;
+                                    roll_coef[i] * in_cmd[COMMAND_ROLL] +
+                                    pitch_coef[i] * in_cmd[COMMAND_PITCH] +
+                                    coll_coef[i] * throttle_curve.collective;
     BoundAbs(swashplate_mixing.commands[i], MAX_PPRZ);
   }
 }
