@@ -67,6 +67,11 @@ static void checkPx4RebootCommand(unsigned char b);
 #endif
 
 #ifdef USE_GPS
+
+#ifndef IMCU_GPS_ID
+#define IMCU_GPS_ID GPS_MULTI_ID
+#endif
+
 #include "subsystems/abi.h"
 #include "subsystems/gps.h"
 static abi_event gps_ev;
@@ -78,7 +83,7 @@ void intermcu_init(void)
   pprz_transport_init(&intermcu.transport);
 
 #if USE_GPS
-  AbiBindMsgGPS(ABI_BROADCAST, &gps_ev, gps_cb);
+  AbiBindMsgGPS(IMCU_GPS_ID, &gps_ev, gps_cb);
 #endif
 
 #ifdef BOARD_PX4IO
